@@ -48,6 +48,9 @@ model User {
   username     String        @unique
   password     String
   fullName     String
+  phone        String?
+  otpCode      String?
+  otpExpires   DateTime?
   role         Role          @default(KASIR)
   storeId      String?
   store        Store?        @relation(fields: [storeId], references: [id])

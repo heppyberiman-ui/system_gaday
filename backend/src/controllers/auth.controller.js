@@ -66,9 +66,46 @@ const updateProfile = async (req, res, next) => {
   }
 };
 
+/**
+ * Handle OTP Request for Forgot Password
+ */
+const requestOTP = async (req, res, next) => {
+  try {
+    const { phone } = req.body;
+    const result = await authService.requestOTP(phone);
+    res.status(200).json({
+      status: 'success',
+      message: result.message,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Handle OTP Verification & Password Reset
+ */
+const resetPasswordOTP = async (req, res, next) => {
+  try {
+    const { phone, otpCode, newPassword } = req.body;
+    const result = await authService.verifyOTPAndResetPassword(phone, otpCode, newPassword);
+    res.status(200).json({
+      status: 'success',
+      message: result.message,
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
   getMe,
-  updateProfile
+  updateProfile,
+  requestOTP,
+  resetPasswordOTP
 };
+

@@ -425,7 +425,7 @@ const USER_ACTIVE_GEMINI_KEY = process.env.GEMINI_API_KEY || "";
 /**
  * Perform optical character recognition on local file path using multi-pass scanning
  * @param {string} filePath
- */ x;
+ */
 const scanReceipt = async (filePath, customApiKey = null) => {
   const localLangPath = path.resolve(__dirname, "../../");
 

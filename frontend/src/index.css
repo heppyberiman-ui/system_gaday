@@ -446,3 +446,240 @@ body {
     display: none !important;
   }
 }
+
+/* ==========================================================================
+   SPLIT-SCREEN ORGANIC WAVE LOGIN PAGE (PAWN SHOP THEME)
+   ========================================================================== */
+.login-page-bg {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #eef2f6;
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.12) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.10) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(241, 245, 249, 0.8) 0px, transparent 100%);
+  padding: 1.5rem;
+}
+
+.login-card-container {
+  width: 100%;
+  max-width: 1100px;
+  min-height: 620px;
+  background: #ffffff;
+  border-radius: 1.75rem;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.18), 0 10px 25px -5px rgba(37, 99, 235, 0.12);
+  overflow: hidden;
+  display: flex;
+  position: relative;
+}
+
+.login-left-section {
+  flex: 1.15;
+  padding: 2.75rem 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #ffffff;
+  position: relative;
+  z-index: 1;
+}
+
+.login-right-section {
+  flex: 1;
+  background: linear-gradient(135deg, #0b132b 0%, #1e3a8a 55%, #2563eb 100%);
+  color: #ffffff;
+  padding: 3rem 3rem 3rem 4.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  z-index: 2;
+}
+
+/* Organic Wave SVG overlay extending left */
+.login-wave-svg {
+  position: absolute;
+  top: 0;
+  left: -110px;
+  height: 100%;
+  width: 112px;
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Background floating glow circles on login right panel */
+.login-right-glow-1 {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(37, 99, 235, 0) 70%);
+  top: -60px;
+  right: -60px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.login-right-glow-2 {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(30, 58, 138, 0) 70%);
+  bottom: -80px;
+  left: -40px;
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* Category Pill Badges */
+.pawn-category-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 50rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #334155;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+}
+
+.pawn-category-pill:hover {
+  background: #eff6ff;
+  color: #2563eb;
+  border-color: #bfdbfe;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.12);
+}
+
+.pawn-category-pill i {
+  font-size: 0.9rem;
+  color: #2563eb;
+}
+
+/* Custom Styled Inputs for Dark Background */
+.login-input-group {
+  position: relative;
+  margin-bottom: 1.25rem;
+}
+
+.login-input-field {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid transparent;
+  border-radius: 50rem;
+  padding: 0.85rem 1.25rem 0.85rem 3.1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.login-input-field:focus {
+  background: #ffffff;
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.35);
+}
+
+.login-input-icon {
+  position: absolute;
+  left: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 1.1rem;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.login-input-field:focus + .login-input-icon,
+.login-input-group:focus-within .login-input-icon {
+  color: #2563eb;
+}
+
+.login-input-toggle {
+  position: absolute;
+  right: 1.2rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+.login-input-toggle:hover {
+  color: #1e293b;
+}
+
+/* Glow submit button */
+.btn-login-glow {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 50rem;
+  padding: 0.85rem 1.5rem;
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.btn-login-glow:hover:not(:disabled) {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.55);
+  transform: translateY(-2px);
+  color: #ffffff;
+}
+
+.btn-login-glow:disabled {
+  opacity: 0.8;
+  cursor: not-allowed;
+}
+
+/* Demo Credential Glass Pill */
+.demo-credential-pill {
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* Responsive breakpoint for mobile screen split */
+@media (max-width: 992px) {
+  .login-card-container {
+    flex-direction: column;
+    max-width: 520px;
+    min-height: auto;
+    border-radius: 1.5rem;
+  }
+  .login-wave-svg {
+    display: none;
+  }
+  .login-left-section {
+    padding: 2rem 1.75rem;
+  }
+  .login-right-section {
+    padding: 2.5rem 1.75rem;
+  }
+}
+

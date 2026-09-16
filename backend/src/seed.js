@@ -53,6 +53,7 @@ async function seed() {
         username: 'admin',
         password: hashedAdminPassword,
         fullName: 'PawnHub Admin Manager',
+        phone: '082288110375',
         role: 'ADMIN',
         storeId: store.id
       },
@@ -60,6 +61,7 @@ async function seed() {
         username: 'kasir',
         password: hashedKasirPassword,
         fullName: 'Siti Kasir',
+        phone: '082288110375',
         role: 'KASIR',
         storeId: store.id
       }

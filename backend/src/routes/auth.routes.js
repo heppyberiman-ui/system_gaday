@@ -6,6 +6,8 @@ const { authenticateJWT, authorizeRoles } = require('../middleware/auth.middlewa
 // Public authentication paths
 router.post('/register', authController.register);
 router.post('/login', authController.login);
+router.post('/request-otp', authController.requestOTP);
+router.post('/reset-password-otp', authController.resetPasswordOTP);
 
 // Token-protected profile check & update
 router.get('/me', authenticateJWT, authController.getMe);
