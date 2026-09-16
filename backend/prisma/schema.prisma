@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  KASIR
+}
+
+enum TransactionStatus {
+  AKTIF
+  LUNAS
+  PERPANJANG
+  JATUH_TEMPO
+  DIJUAL
+}
+
+enum CashFlowType {
+  IN
+  OUT
+}
+
+model Store {
+  id           String        @id @default(uuid())
+  name         String
+  address      String?
+  phone        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  users        User[]
+  customers    Customer[]
+  transactions Transaction[]
+  cashFlows    CashFlow[]
+  expenses     Expense[]
+  settings     Setting?
+
+  @@map("stores")
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  password     String
+  fullName     String
+  role         Role          @default(KASIR)
+  storeId      String?
+  store        Store?        @relation(fields: [storeId], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  payments     Payment[]
+  expenses     Expense[]
+  auditLogs    AuditLog[]
+
+  @@map("users")
+}
+
+model Customer {
+  id           String        @id @default(uuid())
+  storeId      String
+  store        Store         @relation(fields: [storeId], references: [id])
+  name         String
+  nik          String        @unique
+  phone        String
+  address      String?
+  ktpPhotoPath String?
+  notes        String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  items        Item[]
+  transactions Transaction[]
+
+  @@map("customers")
+}
+
+model Item {
+  id             String        @id @default(uuid())
+  customerId     String
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  name           String
+  category       String
+  brand          String?
+  modelName      String?
+  imei           String?
+  serialNumber   String?
+  color          String?
+  equipment      String?
+  condition      String?
+  estimatedValue Decimal       @db.Decimal(15, 2)
+  pawnAmount     Decimal       @db.Decimal(15, 2)
+  photoPath      String?
+  description    String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  transactions   Transaction[]
+  photos         ItemPhoto[]
+
+  @@map("items")
+}
+
+model ItemPhoto {
+  id        String   @id @default(uuid())
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  photoPath String
+  createdAt DateTime @default(now())
+
+  @@map("item_photos")
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  transactionCode String            @unique
+  storeId         String
+  store           Store             @relation(fields: [storeId], references: [id])
+  customerId      String
+  customer        Customer          @relation(fields: [customerId], references: [id])
+  itemId          String
+  item            Item              @relation(fields: [itemId], references: [id])
+  userId          String
+  user            User              @relation(fields: [userId], references: [id])
+  loanAmount      Decimal           @db.Decimal(15, 2)
+  interestRate    Decimal           @db.Decimal(5, 2)
+  interestAmount  Decimal           @db.Decimal(15, 2)
+  adminFee        Decimal           @db.Decimal(15, 2)
+  durationDays    Int               @default(30)
+  startDate       DateTime          @default(now())
+  dueDate         DateTime
+  endDate         DateTime?
+  status          TransactionStatus @default(AKTIF)
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  payments        Payment[]
+  cashFlows       CashFlow[]
+
+  @@map("transactions")
+}
+
+model Payment {
+  id            String      @id @default(uuid())
+  transactionId String
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  userId        String
+  user          User        @relation(fields: [userId], references: [id])
+  paymentType   String
+  amount        Decimal     @db.Decimal(15, 2)
+  paymentDate   DateTime    @default(now())
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("payments")
+}
+
+model CashFlow {
+  id            String       @id @default(uuid())
+  storeId       String
+  store         Store        @relation(fields: [storeId], references: [id])
+  transactionId String?
+  transaction   Transaction? @relation(fields: [transactionId], references: [id])
+  type          CashFlowType
+  amount        Decimal      @db.Decimal(15, 2)
+  category      String
+  description   String
+  date          DateTime     @default(now())
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@map("cash_flow")
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  storeId     String
+  store       Store    @relation(fields: [storeId], references: [id])
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  amount      Decimal  @db.Decimal(15, 2)
+  category    String
+  description String
+  date        DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("expenses")
+}
+
+model Setting {
+  id                  String   @id @default(uuid())
+  storeId             String   @unique
+  store               Store    @relation(fields: [storeId], references: [id])
+  defaultInterestRate Decimal  @default(10.0) @db.Decimal(5, 2)
+  defaultAdminFee     Decimal  @default(0) @db.Decimal(15, 2)
+  defaultDurationDays Int      @default(30)
+  storeName           String?
+  storeAddress        String?
+  storePhone          String?
+  storePhotoPath      String?
+  termsConditions     String?
+  waGatewayToken      String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("settings")
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  action      String
+  description String
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+
+  @@map("audit_logs")
+}
