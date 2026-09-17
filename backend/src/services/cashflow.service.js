@@ -164,26 +164,34 @@ const getCashFlowSummary = async (query = {}, user) => {
     where,
     select: {
       type: true,
-      amount: true
+      amount: true,
+      category: true
     }
   });
 
   let totalIn = 0;
   let totalOut = 0;
+  const breakdownIn = {};
+  const breakdownOut = {};
 
   cashFlows.forEach(cf => {
     const val = parseFloat(cf.amount);
     if (cf.type === 'IN') {
       totalIn += val;
+      breakdownIn[cf.category] = (breakdownIn[cf.category] || 0) + val;
     } else if (cf.type === 'OUT') {
       totalOut += val;
+      breakdownOut[cf.category] = (breakdownOut[cf.category] || 0) + val;
     }
   });
 
   return {
     totalIn,
     totalOut,
-    balance: totalIn - totalOut
+    balance: totalIn - totalOut,
+    count: cashFlows.length,
+    breakdownIn,
+    breakdownOut
   };
 };
 
