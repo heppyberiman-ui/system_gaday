@@ -41,6 +41,7 @@ const Dashboard = () => {
   // Daily Closing Modal States
   const [showClosingModal, setShowClosingModal] = useState(false);
   const [closingNotes, setClosingNotes] = useState('');
+  const savedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
 
   const handlePrintTx = async (txId) => {
     try {
@@ -684,8 +685,8 @@ const Dashboard = () => {
 
       {/* Modal Cetak Tutup Buku Kas Harian */}
       {showClosingModal && (
-        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', zIndex: 1060 }}>
-          <div className="modal-dialog modal-dialog-centered modal-lg">
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(5px)', zIndex: 9999, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, overflowY: 'auto' }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg my-4">
             <div className="modal-content border-0 shadow-2xl" style={{ borderRadius: '1.25rem' }}>
               <div className="modal-header border-bottom py-3 px-4 bg-primary text-white" style={{ borderRadius: '1.25rem 1.25rem 0 0' }}>
                 <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
