@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import api from '../services/api';
+import api, { getServerUrl } from '../services/api';
 
 const Items = () => {
   const [items, setItems] = useState([]);
@@ -294,8 +294,7 @@ const Items = () => {
   };
 
   const getBaseUrl = () => {
-    const apiEndpoint = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return apiEndpoint.replace(/\/api$/, '');
+    return getServerUrl();
   };
 
   return (

@@ -1,12 +1,21 @@
 import axios from 'axios';
 
-const getBaseUrl = () => {
+export const getBaseApiUrl = () => {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL;
-  const hostname = typeof window !== 'undefined' && window.location?.hostname ? window.location.hostname : 'localhost';
-  return `http://${hostname}:5000/api`;
+  if (typeof window !== 'undefined' && window.location?.hostname) {
+    if (window.location.hostname.includes('vercel.app')) {
+      return 'https://system-gaday.vercel.app/api';
+    }
+    return `http://${window.location.hostname}:5000/api`;
+  }
+  return 'http://localhost:5000/api';
 };
 
-const API_URL = getBaseUrl();
+export const getServerUrl = () => {
+  return getBaseApiUrl().replace(/\/api\/?$/, '');
+};
+
+const API_URL = getBaseApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,
