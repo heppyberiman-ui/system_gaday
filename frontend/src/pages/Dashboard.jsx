@@ -38,6 +38,10 @@ const Dashboard = () => {
   const [reminders, setReminders] = useState({ h3List: [], h1List: [], overdueList: [], meta: { totalH3: 0, totalH1: 0, totalOverdue: 0, totalReminders: 0 } });
   const [waTab, setWaTab] = useState('h3');
 
+  // Daily Closing Modal States
+  const [showClosingModal, setShowClosingModal] = useState(false);
+  const [closingNotes, setClosingNotes] = useState('');
+
   const handlePrintTx = async (txId) => {
     try {
       const response = await api.get(`/transactions/${txId}`);
@@ -346,9 +350,18 @@ const Dashboard = () => {
             </h5>
             <p className="text-muted mb-0 small">Rincian barang gadai baru masuk, barang ditebus (lunas), dan perpanjangan per jenis barang hari ini</p>
           </div>
-          <span className="badge bg-primary px-3 py-2 rounded-pill fs-7 shadow-xs">
-            <i className="bi bi-activity me-1"></i> Live Kasir Belvin88
-          </span>
+          <div className="d-flex align-items-center gap-2">
+            <button 
+              type="button"
+              onClick={() => setShowClosingModal(true)} 
+              className="btn btn-sm btn-primary shadow-sm fw-bold d-flex align-items-center gap-2 px-3 py-1.5 rounded-pill"
+            >
+              <i className="bi bi-receipt-cutoff"></i> Cetak Tutup Buku Hari Ini
+            </button>
+            <span className="badge bg-primary px-3 py-2 rounded-pill fs-7 shadow-xs">
+              <i className="bi bi-activity me-1"></i> Live Kasir Belvin88
+            </span>
+          </div>
         </div>
 
         <div className="row g-3">
@@ -668,6 +681,139 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Cetak Tutup Buku Kas Harian */}
+      {showClosingModal && (
+        <div className="modal show d-block" tabIndex="-1" style={{ backgroundColor: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', zIndex: 1060 }}>
+          <div className="modal-dialog modal-dialog-centered modal-lg">
+            <div className="modal-content border-0 shadow-2xl" style={{ borderRadius: '1.25rem' }}>
+              <div className="modal-header border-bottom py-3 px-4 bg-primary text-white" style={{ borderRadius: '1.25rem 1.25rem 0 0' }}>
+                <h5 className="modal-title fw-bold d-flex align-items-center gap-2">
+                  <i className="bi bi-journal-bookmark-fill"></i> Berita Acara & Pembukuan Tutup Kas Harian
+                </h5>
+                <button type="button" className="btn-close btn-close-white" onClick={() => setShowClosingModal(false)}></button>
+              </div>
+
+              <div className="modal-body p-4">
+                <div className="text-center pb-3 mb-3 border-bottom">
+                  <h4 className="fw-bold text-dark mb-1">BELVIN88 CELLULAR & GADAI</h4>
+                  <p className="text-muted mb-1 small">Jl. Jendral Sudirman No. 123 • Telp: 0822-8811-0375</p>
+                  <div className="badge bg-dark text-white px-3 py-1.5 rounded-pill fs-7">
+                    LEMBAR TUTUP BUKU & REKONSILIASI KAS LACI
+                  </div>
+                </div>
+
+                <div className="row g-2 mb-3 small">
+                  <div className="col-6">
+                    <span className="text-muted">Periode Tanggal:</span>
+                    <div className="fw-bold text-dark">
+                      {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+                    </div>
+                  </div>
+                  <div className="col-6 text-end">
+                    <span className="text-muted">Petugas Kasir:</span>
+                    <div className="fw-bold text-dark">{savedUser?.fullName || 'Petugas Kasir'}</div>
+                  </div>
+                </div>
+
+                <div className="table-responsive mb-3">
+                  <table className="table table-bordered border-secondary-subtle align-middle small">
+                    <thead className="table-light">
+                      <tr>
+                        <th className="py-2">Pos Rekapitulasi Kas Hari Ini</th>
+                        <th className="py-2 text-center" style={{ width: '120px' }}>Tipe</th>
+                        <th className="py-2 text-end" style={{ width: '200px' }}>Nominal (Rp)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><strong>1. UANG KAS MASUK (INFLOW)</strong></td>
+                        <td className="text-center"><span className="badge bg-success text-white">MASUK</span></td>
+                        <td className="text-end fw-bold text-success">+{formatRupiah((todaySummary.redeemed?.totalValue || 0) + (todaySummary.extended?.totalInterest || 0))}</td>
+                      </tr>
+                      <tr>
+                        <td className="ps-4 text-muted">• Penerimaan Pelunasan / Tebusan ({todaySummary.redeemed?.count || 0} Unit)</td>
+                        <td></td>
+                        <td className="text-end text-muted">{formatRupiah(todaySummary.redeemed?.totalValue || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="ps-4 text-muted">• Penerimaan Bunga Perpanjangan ({todaySummary.extended?.count || 0} Nota)</td>
+                        <td></td>
+                        <td className="text-end text-muted">{formatRupiah(todaySummary.extended?.totalInterest || 0)}</td>
+                      </tr>
+
+                      <tr>
+                        <td><strong>2. UANG KAS KELUAR (OUTFLOW)</strong></td>
+                        <td className="text-center"><span className="badge bg-danger text-white">KELUAR</span></td>
+                        <td className="text-end fw-bold text-danger">-{formatRupiah(todaySummary.pawned?.totalLoanAmount || 0)}</td>
+                      </tr>
+                      <tr>
+                        <td className="ps-4 text-muted">• Pencairan Pinjaman Gadai Baru ({todaySummary.pawned?.count || 0} Unit)</td>
+                        <td></td>
+                        <td className="text-end text-muted">{formatRupiah(todaySummary.pawned?.totalLoanAmount || 0)}</td>
+                      </tr>
+
+                      <tr className="table-primary border-top border-2 border-primary">
+                        <td className="py-2.5">
+                          <strong className="fs-6">3. SELISIH KAS BERSIH HARI INI</strong>
+                        </td>
+                        <td className="text-center py-2.5">
+                          <span className={`badge ${((todaySummary.redeemed?.totalValue || 0) + (todaySummary.extended?.totalInterest || 0) - (todaySummary.pawned?.totalLoanAmount || 0)) >= 0 ? 'bg-primary' : 'bg-danger'}`}>
+                            {((todaySummary.redeemed?.totalValue || 0) + (todaySummary.extended?.totalInterest || 0) - (todaySummary.pawned?.totalLoanAmount || 0)) >= 0 ? 'SURPLUS' : 'DEFISIT'}
+                          </span>
+                        </td>
+                        <td className="text-end py-2.5 fw-bold fs-6">
+                          {formatRupiah((todaySummary.redeemed?.totalValue || 0) + (todaySummary.extended?.totalInterest || 0) - (todaySummary.pawned?.totalLoanAmount || 0))}
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="mb-4">
+                  <label className="form-label text-muted small fw-semibold">Catatan Tutup Buku Kasir:</label>
+                  <textarea 
+                    className="form-control form-control-sm" 
+                    rows="2" 
+                    placeholder="Contoh: Seluruh kas fisik di laci telah dihitung dan sesuai dengan pembukuan sistem..."
+                    value={closingNotes}
+                    onChange={(e) => setClosingNotes(e.target.value)}
+                  />
+                </div>
+
+                <div className="row text-center mt-4 pt-2">
+                  <div className="col-6">
+                    <p className="text-muted small mb-5">Petugas Kasir yang Menghitung,</p>
+                    <div className="fw-bold text-dark border-bottom border-dark d-inline-block px-4 pb-1">
+                      ( {savedUser?.fullName || 'Petugas Kasir'} )
+                    </div>
+                  </div>
+                  <div className="col-6">
+                    <p className="text-muted small mb-5">Diverifikasi Pimpinan / Owner,</p>
+                    <div className="fw-bold text-dark border-bottom border-dark d-inline-block px-4 pb-1">
+                      ( ............................................ )
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-between" style={{ borderRadius: '0 0 1.25rem 1.25rem' }}>
+                <span className="text-muted small">
+                  <i className="bi bi-info-circle me-1"></i> Lembar rekapitulasi siap dicetak ke printer kertas atau PDF.
+                </span>
+                <div className="d-flex gap-2">
+                  <button type="button" className="btn btn-light border py-2 px-3 fw-semibold text-muted" onClick={() => setShowClosingModal(false)}>
+                    Tutup
+                  </button>
+                  <button type="button" className="btn btn-primary py-2 px-4 fw-bold d-flex align-items-center gap-2 shadow-sm" onClick={() => window.print()}>
+                    <i className="bi bi-printer-fill"></i> Cetak / Simpan PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Printable & Share Receipt Modal */}
       <PawnReceiptModal 
