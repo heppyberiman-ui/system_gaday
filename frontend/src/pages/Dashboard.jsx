@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
 import PawnReceiptModal from '../components/PawnReceiptModal';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { Line } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -41,7 +43,71 @@ const Dashboard = () => {
   // Daily Closing Modal States
   const [showClosingModal, setShowClosingModal] = useState(false);
   const [closingNotes, setClosingNotes] = useState('');
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
   const savedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+
+  const getClosingReportText = () => {
+    const dateStr = new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    const cashierName = savedUser?.fullName || 'Petugas Kasir';
+    const totalIn = (todaySummary.redeemed?.totalValue || 0) + (todaySummary.extended?.totalInterest || 0);
+    const totalOut = todaySummary.pawned?.totalLoanAmount || 0;
+    const balance = totalIn - totalOut;
+
+    return `📊 *LAPORAN TUTUP BUKU KAS HARIAN*
+*BELVIN88 CELLULAR & GADAI*
+━━━━━━━━━━━━━━━━━━━━
+📅 *Tanggal:* ${dateStr}
+👤 *Kasir Bertugas:* ${cashierName}
+
+🟢 *UANG KAS MASUK:* ${formatRupiah(totalIn)}
+  • Pelunasan / Tebusan (${todaySummary.redeemed?.count || 0} Unit): ${formatRupiah(todaySummary.redeemed?.totalValue || 0)}
+  • Bunga Perpanjangan (${todaySummary.extended?.count || 0} Nota): ${formatRupiah(todaySummary.extended?.totalInterest || 0)}
+
+🔴 *UANG KAS KELUAR:* ${formatRupiah(totalOut)}
+  • Pencairan Gadai Baru (${todaySummary.pawned?.count || 0} Unit): ${formatRupiah(todaySummary.pawned?.totalLoanAmount || 0)}
+
+━━━━━━━━━━━━━━━━━━━━
+💰 *SALDO KAS BERSIH (LACI):*
+👉 *${formatRupiah(balance)}* (${balance >= 0 ? 'SURPLUS' : 'DEFISIT'})
+━━━━━━━━━━━━━━━━━━━━
+📝 *Catatan Kasir:* ${closingNotes || 'Tutup buku kas laci selesai dan sesuai.'}
+
+_Laporan resmi dibuat otomatis dari Sistem Informasi Gadai Belvin88_`;
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = getClosingReportText();
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleCopyReport = () => {
+    const text = getClosingReportText();
+    navigator.clipboard.writeText(text);
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2500);
+  };
+
+  const handleDownloadClosingPDF = async () => {
+    const element = document.getElementById('dailyClosingPrintableDashboard');
+    if (!element) return;
+    try {
+      setDownloadingPdf(true);
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
+      pdf.save(`Tutup_Buku_Kas_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Gagal mengunduh berkas PDF.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   const handlePrintTx = async (txId) => {
     try {
@@ -695,7 +761,7 @@ const Dashboard = () => {
                 <button type="button" className="btn-close btn-close-white" onClick={() => setShowClosingModal(false)}></button>
               </div>
 
-              <div className="modal-body p-4">
+              <div className="modal-body p-4" id="dailyClosingPrintableDashboard">
                 <div className="text-center pb-3 mb-3 border-bottom">
                   <h4 className="fw-bold text-dark mb-1">BELVIN88 CELLULAR & GADAI</h4>
                   <p className="text-muted mb-1 small">Jl. Jendral Sudirman No. 123 • Telp: 0822-8811-0375</p>
@@ -798,16 +864,25 @@ const Dashboard = () => {
                 </div>
               </div>
 
-              <div className="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-between" style={{ borderRadius: '0 0 1.25rem 1.25rem' }}>
-                <span className="text-muted small">
-                  <i className="bi bi-info-circle me-1"></i> Lembar rekapitulasi siap dicetak ke printer kertas atau PDF.
-                </span>
+              <div className="modal-footer border-top py-3 px-4 bg-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-2" style={{ borderRadius: '0 0 1.25rem 1.25rem' }}>
+                <div className="d-flex align-items-center gap-2">
+                  <button type="button" className="btn btn-success fw-bold d-flex align-items-center gap-2 px-3 py-2 shadow-sm" onClick={handleShareWhatsApp}>
+                    <i className="bi bi-whatsapp fs-5"></i> Bagikan ke WhatsApp
+                  </button>
+                  <button type="button" className="btn btn-outline-dark fw-semibold d-flex align-items-center gap-2 px-3 py-2" onClick={handleCopyReport}>
+                    <i className="bi bi-clipboard-check"></i> {copiedText ? 'Tersalin!' : 'Salin Teks Rekap'}
+                  </button>
+                </div>
+
                 <div className="d-flex gap-2">
+                  <button type="button" className="btn btn-outline-primary fw-semibold d-flex align-items-center gap-2 px-3 py-2" onClick={handleDownloadClosingPDF} disabled={downloadingPdf}>
+                    <i className="bi bi-file-earmark-pdf-fill"></i> {downloadingPdf ? 'Mengunduh...' : 'Unduh PDF'}
+                  </button>
+                  <button type="button" className="btn btn-primary fw-bold d-flex align-items-center gap-2 px-3 py-2 shadow-sm" onClick={() => window.print()}>
+                    <i className="bi bi-printer-fill"></i> Cetak Printer
+                  </button>
                   <button type="button" className="btn btn-light border py-2 px-3 fw-semibold text-muted" onClick={() => setShowClosingModal(false)}>
                     Tutup
-                  </button>
-                  <button type="button" className="btn btn-primary py-2 px-4 fw-bold d-flex align-items-center gap-2 shadow-sm" onClick={() => window.print()}>
-                    <i className="bi bi-printer-fill"></i> Cetak / Simpan PDF
                   </button>
                 </div>
               </div>

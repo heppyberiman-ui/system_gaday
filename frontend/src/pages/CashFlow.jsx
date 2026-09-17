@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../services/api';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const CashFlow = () => {
   const [cashFlows, setCashFlows] = useState([]);
@@ -36,6 +38,8 @@ const CashFlow = () => {
   // Daily Closing Print Modal
   const [showClosingModal, setShowClosingModal] = useState(false);
   const [closingNotes, setClosingNotes] = useState('');
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
+  const [copiedText, setCopiedText] = useState(false);
 
   // Calculate Start & End Date based on active period
   const getDateRange = () => {
@@ -198,6 +202,66 @@ const CashFlow = () => {
   };
 
   const savedUser = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')) : null;
+
+  const getClosingReportText = () => {
+    const cashierName = savedUser?.fullName || 'Petugas Kasir';
+
+    return `📊 *LAPORAN TUTUP BUKU KAS*
+*BELVIN88 CELLULAR & GADAI*
+━━━━━━━━━━━━━━━━━━━━
+📅 *Periode:* ${currentRange.label}
+👤 *Kasir Bertugas:* ${cashierName}
+
+🟢 *UANG KAS MASUK:* ${formatRupiah(summary.totalIn)}
+  • Pelunasan / Tebusan: ${formatRupiah(summary.breakdownIn?.PENEBUSAN || 0)}
+  • Bunga Perpanjangan: ${formatRupiah(summary.breakdownIn?.PERPANJANGAN || 0)}
+  • Biaya Administrasi: ${formatRupiah(summary.breakdownIn?.BIAYA_ADMIN || 0)}
+
+🔴 *UANG KAS KELUAR:* ${formatRupiah(summary.totalOut)}
+  • Pencairan Pinjaman Gadai: ${formatRupiah(summary.breakdownOut?.PINJAMAN_GADAI || 0)}
+  • Beban / Operasional Toko: ${formatRupiah(summary.breakdownOut?.PENGELUARAN_OPERASIONAL || 0)}
+
+━━━━━━━━━━━━━━━━━━━━
+💰 *SALDO KAS BERSIH (LACI):*
+👉 *${formatRupiah(summary.balance)}* (${summary.balance >= 0 ? 'SURPLUS' : 'DEFISIT'})
+━━━━━━━━━━━━━━━━━━━━
+📝 *Catatan Kasir:* ${closingNotes || 'Tutup buku kas laci selesai dan sesuai.'}
+
+_Laporan resmi dibuat otomatis dari Sistem Informasi Gadai Belvin88_`;
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = getClosingReportText();
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
+  const handleCopyReport = () => {
+    const text = getClosingReportText();
+    navigator.clipboard.writeText(text);
+    setCopiedText(true);
+    setTimeout(() => setCopiedText(false), 2500);
+  };
+
+  const handleDownloadClosingPDF = async () => {
+    const element = document.getElementById('dailyClosingPrintable');
+    if (!element) return;
+    try {
+      setDownloadingPdf(true);
+      const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const imgWidth = 210;
+      const pageHeight = 297;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, Math.min(imgHeight, pageHeight));
+      pdf.save(`Tutup_Buku_Kas_${period}_${new Date().toISOString().slice(0, 10)}.pdf`);
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      alert('Gagal mengunduh berkas PDF.');
+    } finally {
+      setDownloadingPdf(false);
+    }
+  };
 
   return (
     <div>
@@ -647,16 +711,25 @@ const CashFlow = () => {
                 </div>
               </div>
 
-              <div className="modal-footer border-top py-3 px-4 bg-light d-flex justify-content-between" style={{ borderRadius: '0 0 1.25rem 1.25rem' }}>
-                <span className="text-muted small">
-                  <i className="bi bi-info-circle me-1"></i> Lembar rekapitulasi siap dicetak ke printer kertas atau PDF.
-                </span>
+              <div className="modal-footer border-top py-3 px-4 bg-light d-flex flex-column flex-md-row justify-content-between align-items-center gap-2" style={{ borderRadius: '0 0 1.25rem 1.25rem' }}>
+                <div className="d-flex align-items-center gap-2">
+                  <button type="button" className="btn btn-success fw-bold d-flex align-items-center gap-2 px-3 py-2 shadow-sm" onClick={handleShareWhatsApp}>
+                    <i className="bi bi-whatsapp fs-5"></i> Bagikan ke WhatsApp
+                  </button>
+                  <button type="button" className="btn btn-outline-dark fw-semibold d-flex align-items-center gap-2 px-3 py-2" onClick={handleCopyReport}>
+                    <i className="bi bi-clipboard-check"></i> {copiedText ? 'Tersalin!' : 'Salin Teks Rekap'}
+                  </button>
+                </div>
+
                 <div className="d-flex gap-2">
-                  <button type="button" className="btn btn-light border py-2 px-3 fw-semibold text-muted" onClick={() => setShowClosingModal(false)}>
-                    Tutup
+                  <button type="button" className="btn btn-outline-primary fw-semibold d-flex align-items-center gap-2 px-3 py-2" onClick={handleDownloadClosingPDF} disabled={downloadingPdf}>
+                    <i className="bi bi-file-earmark-pdf-fill"></i> {downloadingPdf ? 'Mengunduh...' : 'Unduh PDF'}
                   </button>
                   <button type="button" className="btn btn-primary py-2 px-4 fw-bold d-flex align-items-center gap-2 shadow-sm" onClick={handlePrintClosing}>
-                    <i className="bi bi-printer-fill"></i> Cetak / Simpan PDF
+                    <i className="bi bi-printer-fill"></i> Cetak Printer
+                  </button>
+                  <button type="button" className="btn btn-light border py-2 px-3 fw-semibold text-muted" onClick={() => setShowClosingModal(false)}>
+                    Tutup
                   </button>
                 </div>
               </div>
