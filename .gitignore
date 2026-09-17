@@ -7,6 +7,9 @@ dist/
 build/
 
 backend/uploads/
-backend/src/uploads/
+backend/src/uploads/*
+!backend/src/uploads/.gitkeep
+!backend/src/uploads/barang/.gitkeep
+!backend/src/uploads/scan/.gitkeep
 
 *.log
